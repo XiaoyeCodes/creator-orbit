@@ -12,13 +12,16 @@ function makeServer({atlas=createAtlas(),root=path.join(__dirname,'dist')}={}){
   if(req.headers.origin && req.headers.origin!==`http://${req.headers.host}`)return send(res,403,{error:'跨站请求已拒绝，请从本地工作台操作'});
   if(req.headers['sec-fetch-site']==='cross-site')return send(res,403,{error:'跨站请求已拒绝'});
   const pathname=decodeURIComponent(new URL(req.url,`http://${req.headers.host}`).pathname);
-  if(req.method==='GET'&&pathname==='/api/bootstrap')return send(res,200,{token,capabilities:await atlas.capability(),queue:atlas.queueItems(),jobs:atlas.list()});
+  if(req.method==='GET'&&pathname==='/api/bootstrap')return send(res,200,{token,capabilities:await atlas.capability(),queue:atlas.queueItems(),queueConfig:atlas.queueConfig(),jobs:atlas.list()});
+  if(req.method==='GET'&&pathname==='/api/queue')return send(res,200,atlas.queueConfig());
   if(pathname.startsWith('/api/')){
    let body={};if(req.method==='POST'){
     if(req.headers['x-orbit-token']!==token||!/^application\/json(?:;|$)/i.test(req.headers['content-type']||''))return send(res,403,{error:'操作验证失败，请刷新工作台'});
-    let bytes=0,chunks=[];for await(const chunk of req){bytes+=chunk.length;if(bytes>16384)return send(res,413,{error:'请求过大'});chunks.push(chunk)}
+    let bytes=0,chunks=[];for await(const chunk of req){bytes+=chunk.length;if(bytes>(pathname==='/api/queue'?320*1024:16384))return send(res,413,{error:'请求过大'});chunks.push(chunk)}
     try{body=JSON.parse(Buffer.concat(chunks).toString('utf8')||'{}')}catch{return send(res,400,{error:'无效 JSON'})}
    }
+   if(req.method==='POST'&&pathname==='/api/queue')return send(res,200,atlas.updateQueue(body));
+   if(req.method==='POST'&&pathname==='/api/queue/open')return send(res,200,await atlas.openQueue());
    if(req.method==='POST'&&pathname==='/api/jobs')return send(res,202,await atlas.create(body.mode||'production'));
    const match=pathname.match(/^\/api\/jobs\/([a-zA-Z0-9-]+)(?:\/(retry|cancel|publish|copy|open-folder|assets)(?:\/(.+))?)?$/);
    if(!match)return send(res,404,{error:'接口不存在'});const [,id,action,filename]=match;

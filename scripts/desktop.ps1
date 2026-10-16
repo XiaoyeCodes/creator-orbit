@@ -19,6 +19,11 @@ function Set-OrbitClipboard($text, $files) {
 }
 switch ($request.action) {
     'copy' { Set-OrbitClipboard $request.text $request.files; $result.clipboard = $true }
+    'open-file' {
+        if (-not (Test-Path -LiteralPath $request.file -PathType Leaf)) { throw 'Configuration file is missing' }
+        Start-Process -FilePath 'notepad.exe' -ArgumentList ('"' + $request.file + '"') | Out-Null
+        $result.opened = $true
+    }
     'open-folder' {
         if (-not (Test-Path -LiteralPath $request.folder -PathType Container)) { throw 'Output folder is missing' }
         Start-Process -FilePath 'explorer.exe' -ArgumentList ('"' + $request.folder + '"') | Out-Null
