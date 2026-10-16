@@ -3,3 +3,6 @@ artifacts/
 *.tar.gz
 *.zip
 .openai/*.local.json
+data/
+__pycache__/
+*.pyc

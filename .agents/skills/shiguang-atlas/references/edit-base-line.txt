@@ -1,0 +1,1 @@
+Treat the attached reference image as the EDIT BASE and layout blueprint. Preserve its page structure, relative panel positions, visual hierarchy, typography scale and information density. Replace the subject and factual content in the corresponding regions. Do not redesign or freely rearrange the page.

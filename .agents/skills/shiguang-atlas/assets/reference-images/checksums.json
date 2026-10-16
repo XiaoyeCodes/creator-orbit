@@ -1,0 +1,65 @@
+[
+  {
+    "file": "bee.jpg",
+    "sha256": "e7b78ae8cca3dc70d9c6d815f595d84835b7c2caddf88427429996bef996885b",
+    "dimensions": [
+      906,
+      1358
+    ],
+    "bytes": 351714
+  },
+  {
+    "file": "fruit.jpg",
+    "sha256": "9d463f548bc33731ffbc596d7b8a539e09078e2c5f5076257dc69b12f576b534",
+    "dimensions": [
+      906,
+      1358
+    ],
+    "bytes": 352915
+  },
+  {
+    "file": "jellyfish.jpg",
+    "sha256": "497fec54df8754cbb2a7ad55c2d574420dc8cb8ff2b21eab26e83154646eeb7f",
+    "dimensions": [
+      1086,
+      1448
+    ],
+    "bytes": 477493
+  },
+  {
+    "file": "lobster.jpg",
+    "sha256": "b9dfe953d1d26aac873ad5b51091506ecc6cf746849b8c45011a20ca8be0508b",
+    "dimensions": [
+      906,
+      1358
+    ],
+    "bytes": 371655
+  },
+  {
+    "file": "mammoth-narrow.jpg",
+    "sha256": "762f3d2e9c8277b76bc08893493c9f15cf10c3d952f2cbb45f6779d9530933f9",
+    "dimensions": [
+      906,
+      1358
+    ],
+    "bytes": 369964
+  },
+  {
+    "file": "mammoth-wide.jpg",
+    "sha256": "eac4f36898747bcf95aacff8e0ca63a295ae42782fd8af22628db2ec0b0726b7",
+    "dimensions": [
+      1086,
+      1448
+    ],
+    "bytes": 460564
+  },
+  {
+    "file": "tuna.jpg",
+    "sha256": "8988a0c0b7eed15f890a626040b137cf87c4cc993072f27fd08900b42788aa21",
+    "dimensions": [
+      906,
+      1358
+    ],
+    "bytes": 317158
+  }
+]

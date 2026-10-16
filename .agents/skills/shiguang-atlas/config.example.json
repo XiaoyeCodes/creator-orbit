@@ -1,0 +1,25 @@
+{
+  "mode": "test",
+  "timezone": "Asia/Shanghai",
+  "queue_path": "./主题/topics.md",
+  "output_root": "./生成结果",
+  "reference_root": "assets/reference-images",
+  "reference_root_relative_to": "skill",
+  "generation": {
+    "provider": "builtin-gpt-image",
+    "width": 1086,
+    "height": 1448,
+    "allow_local_image_repair": false
+  },
+  "delivery": {
+    "mode": "local",
+    "drive_folder_id": null,
+    "account_id": null,
+    "standing_upload_permission_confirmed": false
+  },
+  "schedule_intent": {
+    "enabled": false,
+    "times": ["07:00", "12:00", "19:00"],
+    "timezone": "Asia/Shanghai"
+  }
+}
