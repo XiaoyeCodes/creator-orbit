@@ -1,0 +1,5 @@
+node_modules/
+artifacts/
+*.tar.gz
+*.zip
+.openai/*.local.json
