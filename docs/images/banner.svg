@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="360" viewBox="0 0 1280 360" role="img" aria-labelledby="title desc">
+ <title id="title">ORBIT — Creator Terminal</title>
+ <desc id="desc">A dark green banner for Creator Orbit, a local AI content creation workspace.</desc>
+ <defs>
+  <radialGradient id="glow"><stop stop-color="#a9e45a" stop-opacity=".17"/><stop offset="1" stop-color="#a9e45a" stop-opacity="0"/></radialGradient>
+  <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0H0V40" fill="none" stroke="#c5f782" stroke-opacity=".035"/></pattern>
+ </defs>
+ <rect width="1280" height="360" rx="18" fill="#0c100b"/>
+ <rect width="1280" height="360" rx="18" fill="url(#grid)"/>
+ <ellipse cx="1050" cy="150" rx="350" ry="290" fill="url(#glow)"/>
+ <rect x=".5" y=".5" width="1279" height="359" rx="18" fill="none" stroke="#314126"/>
+ <g font-family="Arial, Helvetica, sans-serif">
+  <circle cx="66" cy="55" r="4" fill="#c0f57e"/>
+  <text x="82" y="60" fill="#91a17f" font-size="12" letter-spacing="3">YOUR CREATIVE SPACE. IN ORBIT.</text>
+  <text x="60" y="169" fill="#eff5e8" font-size="88" font-weight="700" letter-spacing="15">ORBIT</text>
+  <text x="64" y="208" fill="#b9d99c" font-size="18" letter-spacing="6">CREATOR TERMINAL</text>
+  <text x="64" y="252" fill="#93a284" font-size="16" font-family="Microsoft YaHei, Noto Sans CJK SC, sans-serif">从一个选题，到一套可以发布的图文。</text>
+  <path d="M64 281H659" stroke="#2b3922"/>
+  <text x="64" y="315" fill="#c0f57e" font-size="12" letter-spacing="2">01 / PLAN</text>
+  <text x="253" y="315" fill="#c0f57e" font-size="12" letter-spacing="2">02 / CREATE</text>
+  <text x="463" y="315" fill="#c0f57e" font-size="12" letter-spacing="2">03 / PUBLISH</text>
+ </g>
+ <g transform="translate(1018 175)" fill="none">
+  <circle r="112" stroke="#c0f57e" stroke-opacity=".12"/>
+  <circle r="158" stroke="#c0f57e" stroke-opacity=".06" stroke-dasharray="3 8"/>
+  <ellipse rx="113" ry="43" transform="rotate(-42)" stroke="#c0f57e" stroke-width="2"/>
+  <ellipse rx="59" ry="95" transform="rotate(-30)" stroke="#c0f57e" stroke-opacity=".75" stroke-width="2"/>
+  <circle r="9" fill="#c0f57e" stroke="none"/>
+  <circle cx="84" cy="-72" r="5" fill="#eff5e8" stroke="none"/>
+ </g>
+ <text x="920" y="322" fill="#70845f" font-family="Arial, sans-serif" font-size="10" letter-spacing="3">LOCAL FIRST / HUMAN IN CONTROL</text>
+</svg>
