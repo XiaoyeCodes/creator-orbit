@@ -1,3 +1,4 @@
+param([switch]$Quiet)
 $ErrorActionPreference = 'Stop'
 $orbitRoot = Split-Path -Parent $PSScriptRoot
 $orbitUrl = 'http://127.0.0.1:4173'
@@ -18,6 +19,6 @@ try {
     Start-Process "$orbitUrl/#atlas"
 } catch {
     Write-Host $_.Exception.Message -ForegroundColor Red
-    Read-Host 'Press Enter to close'
+    if (-not $Quiet) { Read-Host 'Press Enter to close' }
     exit 1
 }

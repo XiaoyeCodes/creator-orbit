@@ -435,8 +435,7 @@ def inspect_image(path, require_output=False):
         raise WorkflowError(f"Image cannot be fully decoded: {path}: {exc}") from exc
 
 
-def validate(manifest_path):
-    path, project, state, manifest = load_run(manifest_path)
+def validate_quantity_plan(manifest, project):
     n = manifest.get("content_pages")
     require(type(n) is int and n >= 1, "content_pages must be the agent-planned positive integer N")
     plan = manifest.get("quantity_plan")
@@ -455,6 +454,12 @@ def validate(manifest_path):
     else:
         require(plan.get("basis") == "editorial_range" and 4 <= n <= 8,
                 "A topic without a verified natural set requires 4–8 content pages")
+    return n
+
+
+def validate(manifest_path):
+    path, project, state, manifest = load_run(manifest_path)
+    n = validate_quantity_plan(manifest, project)
     catalog_path = SKILL_ROOT / "assets/reference-images/checksums.json"
     try:
         catalog = json.loads(catalog_path.read_text(encoding="utf-8"))

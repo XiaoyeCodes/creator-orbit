@@ -12,7 +12,7 @@ function makeServer({atlas=createAtlas(),root=path.join(__dirname,'dist')}={}){
   if(req.headers.origin && req.headers.origin!==`http://${req.headers.host}`)return send(res,403,{error:'跨站请求已拒绝，请从本地工作台操作'});
   if(req.headers['sec-fetch-site']==='cross-site')return send(res,403,{error:'跨站请求已拒绝'});
   const pathname=decodeURIComponent(new URL(req.url,`http://${req.headers.host}`).pathname);
-  if(req.method==='GET'&&pathname==='/api/bootstrap')return send(res,200,{token,capabilities:await atlas.capability(),queue:atlas.queueItems(),queueConfig:atlas.queueConfig(),jobs:atlas.list()});
+  if(req.method==='GET'&&pathname==='/api/bootstrap'){await atlas.refreshMedia();return send(res,200,{token,capabilities:await atlas.capability(),queue:atlas.queueItems(),queueConfig:atlas.queueConfig(),jobs:atlas.list()})}
   if(req.method==='GET'&&pathname==='/api/queue')return send(res,200,atlas.queueConfig());
   if(pathname.startsWith('/api/')){
    let body={};if(req.method==='POST'){
@@ -22,11 +22,11 @@ function makeServer({atlas=createAtlas(),root=path.join(__dirname,'dist')}={}){
    }
    if(req.method==='POST'&&pathname==='/api/queue')return send(res,200,atlas.updateQueue(body));
    if(req.method==='POST'&&pathname==='/api/queue/open')return send(res,200,await atlas.openQueue());
-   if(req.method==='POST'&&pathname==='/api/jobs')return send(res,202,await atlas.create(body.mode||'production'));
+   if(req.method==='POST'&&pathname==='/api/jobs')return send(res,202,await atlas.create(body.mode||'production',{testTopic:body.testTopic,visualStyle:body.visualStyle}));
    const match=pathname.match(/^\/api\/jobs\/([a-zA-Z0-9-]+)(?:\/(retry|cancel|publish|copy|open-folder|assets)(?:\/(.+))?)?$/);
    if(!match)return send(res,404,{error:'接口不存在'});const [,id,action,filename]=match;
-   if(req.method==='GET'&&!action)return send(res,200,atlas.progress(id));
-   if(req.method==='GET'&&action==='assets'){const file=atlas.asset(id,filename);const bytes=await fs.promises.readFile(file);res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(bytes);return}
+   if(req.method==='GET'&&!action)return send(res,200,await atlas.progress(id));
+   if(req.method==='GET'&&action==='assets'){const file=await atlas.asset(id,filename);const bytes=await fs.promises.readFile(file);res.writeHead(200,{'Content-Type':'image/png','Cache-Control':'no-store','X-Content-Type-Options':'nosniff'});res.end(bytes);return}
    if(req.method==='POST'){const handlers={retry:()=>atlas.retry(id),cancel:()=>atlas.cancel(id),publish:()=>atlas.publish(id),copy:()=>atlas.copy(id,body.kind),'open-folder':()=>atlas.openFolder(id)};if(handlers[action])return send(res,200,await handlers[action]())}
    return send(res,405,{error:'不支持此操作'});
   }
