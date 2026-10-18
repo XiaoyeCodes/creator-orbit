@@ -179,6 +179,43 @@ class WorkflowTests(unittest.TestCase):
         self.save()
         self.assertTrue(w.validate(self.manifest_path)["valid"])
 
+    def test_prompt_header_accepts_crlf_and_mixed_newlines_without_rewriting_evidence(self):
+        self.make_run()
+        for i, item in enumerate(self.manifest['images']):
+            generation = item['generation']
+            prompt = generation['prompt'].replace('\n', '\r\n')
+            if i == 0:
+                prompt = prompt.replace('no blurring\r\n', 'no blurring\n')
+            generation['prompt'] = generation['actual_input']['prompt'] = prompt
+            self.sync_evidence(i)
+        self.save()
+        files = [self.manifest_path] + [self.project / item['generation']['call_evidence_path'] for item in self.manifest['images']]
+        before = {file: file.read_bytes() for file in files}
+        self.assertTrue(w.validate(self.manifest_path)['valid'])
+        self.assertEqual(before, {file: file.read_bytes() for file in files})
+
+    def test_crlf_header_still_rejects_changed_wording_and_cover_edit_base(self):
+        self.make_run()
+        generation = self.manifest['images'][0]['generation']
+        original = generation['prompt'].replace('\n', '\r\n')
+        generation['prompt'] = generation['actual_input']['prompt'] = original.replace('1086x1448', '1086x1449')
+        self.sync_evidence(0)
+        self.rejected('exact required prefix')
+        state = w.read_json(self.project / 'raw_generated/.prepare-state.json')
+        generation['prompt'] = generation['actual_input']['prompt'] = state['prompt_header'].replace('\n', '\r\n') + 'Synthetic cover content'
+        self.sync_evidence(0)
+        self.rejected('Independent cover must not include')
+
+    def test_crlf_normalization_does_not_relax_actual_tool_evidence_equality(self):
+        self.make_run()
+        generation = self.manifest['images'][0]['generation']
+        original = generation['prompt']
+        generation['prompt'] = original.replace('\n', '\r\n')
+        self.rejected('actual_input.prompt differs')
+        generation['actual_input']['prompt'] = generation['prompt']
+        # Saved call evidence still has the actual old LF input: do not silently normalize it.
+        self.rejected('saved call evidence does not match')
+
     def test_exact_prompt_prefix_enforced(self):
         self.make_run()
         self.manifest["images"][1]["generation"]["prompt"] = "3:4 approx\n" + self.manifest["images"][1]["generation"]["prompt"]
@@ -195,10 +232,16 @@ class WorkflowTests(unittest.TestCase):
         self.manifest["tags"]["related"] = ["甲"]
         self.rejected("5 and 10")
 
-    def test_banned_word_rejected(self):
+    def test_normal_words_are_allowed_in_all_text_fields(self):
         self.make_run()
-        (self.project / self.manifest["full_text_path"]).write_text("首先讲水果", encoding="utf-8")
-        self.rejected("Forbidden copy wording")
+        words = "首先、其次、再次、最后、总的来说、综上所述。再次统一，最后一位。"
+        fields = [self.manifest["caption_path"], self.manifest["full_text_path"]]
+        fields += [image["copy_path"] for image in self.manifest["images"]]
+        for name in fields:
+            file = self.project / name
+            file.write_text(file.read_text(encoding="utf-8") + "\n" + words, encoding="utf-8")
+        self.save()
+        self.assertTrue(w.validate(self.manifest_path)["valid"])
 
     def test_false_qa_rejected(self):
         self.make_run()

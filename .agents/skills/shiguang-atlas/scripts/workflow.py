@@ -19,7 +19,6 @@ import tempfile
 import unicodedata
 
 SKILL_ROOT = Path(__file__).resolve().parent.parent
-BANNED = ("首先", "其次", "再次", "最后", "总的来说", "综上所述")
 GLOBAL_CHECKS = (
     "all_images_visually_reviewed", "each_reference_attachment_verified",
     "actual_tool_inputs_inspected", "sources_checked", "full_text_complete",
@@ -97,16 +96,13 @@ def reference_file(project, value):
     return result
 
 
-def text_file(project, value, name, scan=False):
+def text_file(project, value, name):
     path = local_file(project, value, name)
     try:
         text = path.read_text(encoding="utf-8")
     except (OSError, UnicodeError) as exc:
         raise WorkflowError(f"Cannot read UTF-8 text {path}: {exc}") from exc
     require(bool(text.strip()), f"{name} is empty")
-    if scan:
-        found = [word for word in BANNED if word in text]
-        require(not found, f"Forbidden copy wording in {name}: {', '.join(found)}")
     return path, text
 
 
@@ -267,8 +263,8 @@ def _prepare_once(queue, output_root, day=None, test_mode=False, prefix_file=Non
             },
         }
         write_json(raw / "manifest.json", manifest)
-        (raw / "required-prompt-header.txt").write_text(header, encoding="utf-8")
-        (raw / "required-cover-prompt-prefix.txt").write_text(prefix + "\n", encoding="utf-8")
+        (raw / "required-prompt-header.txt").write_text(header, encoding="utf-8", newline="\n")
+        (raw / "required-cover-prompt-prefix.txt").write_text(prefix + "\n", encoding="utf-8", newline="\n")
         (raw / "VALIDATION-BOUNDARY.txt").write_text(BOUNDARY + "\n", encoding="utf-8")
         for filename in ("sources.md", "full_text.md", "qa-review.md", "quantity-plan.md"):
             (raw / filename).touch()
@@ -470,11 +466,11 @@ def validate(manifest_path):
     require(len(allowed_reference_hashes) == 7, "Reference catalog must identify seven distinct images")
     images = manifest.get("images")
     require(isinstance(images, list) and len(images) == n + 1, "Exactly N+1 images (one cover, then N content pages) are required")
-    caption_path, caption = text_file(project, manifest.get("caption_path"), "caption_path", scan=True)
+    caption_path, caption = text_file(project, manifest.get("caption_path"), "caption_path")
     require(caption_path.parent == project and caption_path.name == f'{state["safe_topic"]}_小红书文案.md',
             "Caption must be <safe topic>_小红书文案.md at the project root")
     text_file(project, manifest.get("sources_path"), "sources_path")
-    text_file(project, manifest.get("full_text_path"), "full_text_path", scan=True)
+    text_file(project, manifest.get("full_text_path"), "full_text_path")
     tags = manifest.get("tags")
     require(isinstance(tags, dict), "tags must be an object")
     core, related = tags.get("core"), tags.get("related")
@@ -507,7 +503,7 @@ def validate(manifest_path):
         output_hash = sha256(output)
         require(output_hash == item.get("sha256"), f"Output SHA-256 mismatch for image {i}")
         hashes.append(output_hash)
-        text_file(project, item.get("copy_path"), f"image {i} copy_path", scan=True)
+        text_file(project, item.get("copy_path"), f"image {i} copy_path")
         reference = item.get("reference")
         ref_path = None
         if i > 0 or reference is not None:
@@ -563,9 +559,12 @@ def validate(manifest_path):
         nonempty(generation.get("execution_observation"), f"image {i} execution_observation")
         prompt = nonempty(generation.get("prompt"), f"image {i} generation.prompt")
         required_header = state["prompt_header"] if i > 0 else state["prompt_prefix"]
-        require(prompt.startswith(required_header), f"Image {i} prompt lacks its exact required prefix" + (" and EDIT BASE line" if i > 0 else ""))
-        require(i > 0 or not prompt.startswith(state["prompt_header"]), "Independent cover must not include the content-page EDIT BASE sentence")
-        require(bool(prompt[len(required_header):].strip()), f"Image {i} prompt has no page-specific content")
+        # Only header comparison treats Windows CRLF and LF as equivalent.
+        # Preserve original tool inputs and strict call-evidence equality below.
+        header_prompt = prompt.replace("\r\n", "\n")
+        require(header_prompt.startswith(required_header), f"Image {i} prompt lacks its exact required prefix" + (" and EDIT BASE line" if i > 0 else ""))
+        require(i > 0 or not header_prompt.startswith(state["prompt_header"]), "Independent cover must not include the content-page EDIT BASE sentence")
+        require(bool(header_prompt[len(required_header):].strip()), f"Image {i} prompt has no page-specific content")
         actual_input = generation.get("actual_input")
         require(isinstance(actual_input, dict) and actual_input.get("prompt") == prompt, f"Image {i} actual_input.prompt differs from its recorded prompt")
         attached = actual_input.get("referenced_image_paths")

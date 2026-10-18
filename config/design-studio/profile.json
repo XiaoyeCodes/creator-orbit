@@ -1,0 +1,18 @@
+{
+  "name": "偏爱日常设计所",
+  "description": "为女性日常生活里的小需求，画一些新的解法。",
+  "positioning": "以原创物品设计吸引关注，以审美判断与图文创意承接品牌合作。",
+  "audience": "关注通勤、穿搭与日常质感的成年女性",
+  "visualDirection": "现代轻复古，清晰产品主体，可信材质与结构，简洁编辑排版；按每题配色变化，不统一染成苔绿。",
+  "disclosure": "原创概念设计 · AI辅助生成",
+  "publishing": "每题4张竖版图：主视觉、设计细节、功能或空间示意、生活场景。",
+  "strategy": "包袋、穿搭与日常小物分批试发，根据真实关注、收藏和合作反馈调整。第二辑侧重60个衣物与40个幸福感小物。传播理由为选题假设，不代表流量承诺。",
+  "collections": [{"id":"wardrobe-and-joy","name":"衣物与幸福小物","expected":100}],
+  "categories": [
+    {"id":"bag","name":"通勤包袋","target":40},
+    {"id":"phone","name":"手机壳与随身小物","target":30},
+    {"id":"wear","name":"现代女性衣物","target":75},
+    {"id":"home","name":"日常家居角落","target":15},
+    {"id":"daily","name":"幸福感小物","target":40}
+  ]
+}

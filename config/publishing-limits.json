@@ -1,0 +1,11 @@
+{
+  "platform": "xiaohongshu",
+  "format": "standard-image-note",
+  "maxTitleChars": 20,
+  "maxBodyChars": 1000,
+  "counting": "unicode-codepoints-conservative-including-tags-spaces-punctuation-normalized-newlines",
+  "verifiedAt": "2026-10-18",
+  "source": "https://school.xiaohongshu.com/lesson/normal/af0fe7e97bb0433fac9da5d1df52b07f",
+  "sourceTitle": "小红书电商学习中心：笔记内容规范",
+  "note": "普通图文入口。官方页面检索文本说明标题20字、正文1000字；未取得登录后编辑器逐字符计数规则，项目采取保守Unicode码点计数，标签等可见文本均计入。不代表独立长文入口上限。"
+}

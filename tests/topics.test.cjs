@@ -1,6 +1,6 @@
 const test=require('node:test');const assert=require('node:assert/strict');
 const fs=require('node:fs');const os=require('node:os');const path=require('node:path');
-const {parseTopics,readTopics,saveTopics}=require('../lib/topics.cjs');
+const {parseTopics,readTopics,saveTopics,editTopics}=require('../lib/topics.cjs');
 const {createAtlas,dateShanghai,atomic}=require('../lib/atlas.cjs');const {makeServer}=require('../server.cjs');
 const ROOT=path.resolve(__dirname,'..');
 const text='# 我的选题\n\n|Status|Topic|Category|\n|-|-|-|\n|已生成|上篇|知识|\n|TODO|下一篇|知识|\n|TODO|后续篇|自然|\n';
@@ -10,6 +10,34 @@ test('queue parser handles BOM, CRLF, escaped pipes, lowercase TODO, reordered h
  assert.deepEqual(items.map(({line,...item})=>item),[{status:'TODO',topic:'岩石|矿物',category:'自然'}]);
  assert.equal(parseTopics(text.replaceAll('TODO','已生成')).filter(x=>x.status==='TODO').length,0);
  for(const invalid of ['没有表格',text.replace('|-|-|-|','|x|x|x|'),text.replace('|TODO|下一篇|知识|','|TODO|下一篇|'),text.replace('TODO','待生成'),text.replace('下一篇','')])assert.throws(()=>parseTopics(invalid));
+});
+test('structured topic actions preserve prose, BOM, CRLF and extra columns while updating order',()=>{
+ const source='\uFEFF# Notes\r\nKeep this paragraph.\r\n\r\n|Category|Topic|Status|Notes|\r\n|-|-|-|-|\r\n|自然|旧篇|已生成|keep old|\r\n|知识|下一篇|TODO|keep next|\r\n|自然|后续篇|TODO|keep last|\r\n\r\nFooter remains.\r\n';
+ const added=editTopics(source,{type:'add',topic:'岩石|矿物',category:'自然'});
+ assert.ok(added.startsWith('\uFEFF# Notes\r\nKeep this paragraph.'));
+ assert.ok(added.endsWith('\r\n\r\nFooter remains.\r\n'));
+ assert.match(added,/\|自然\|岩石\\\|矿物\|TODO\|\|/);
+ const next=editTopics(added,{type:'next',line:parseTopics(added).find(x=>x.topic==='后续篇').line});
+ assert.equal(parseTopics(next).find(x=>x.status==='TODO').topic,'后续篇');
+ assert.match(next,/\|自然\|后续篇\|TODO\|keep last\|/);
+ const edited=editTopics(next,{type:'edit',line:parseTopics(next).find(x=>x.topic==='后续篇').line,topic:'新标题',category:'生活'});
+ assert.match(edited,/\|生活\|新标题\|TODO\|keep last\|/);
+ const moved=editTopics(edited,{type:'move',line:parseTopics(edited)[1].line,direction:'down'});
+ assert.equal(parseTopics(moved)[2].topic,'新标题');
+ const old=parseTopics(moved).find(x=>x.topic==='旧篇');
+ assert.throws(()=>editTopics(moved,{type:'next',line:old.line}),/再次生成/);
+ assert.equal(parseTopics(editTopics(moved,{type:'next',line:old.line,regenerate:true})).find(x=>x.status==='TODO').topic,'旧篇');
+ assert.throws(()=>editTopics(source,{type:'add',topic:'x\ny',category:'自然'}),/单行/);
+ assert.throws(()=>editTopics(source,{type:'edit',line:999,topic:'x',category:'y'}),/已变化/);
+});
+test('structured queue writes use backups and reject stale row references',()=>{
+ const f=setup(),m=createAtlas({root:ROOT,dataRoot:f.dir});try{
+  const original=m.updateQueue({revision:m.queueConfig().revision,text});
+  const updated=m.updateQueue({revision:original.revision,action:{type:'next',line:original.items[2].line}});
+  assert.equal(updated.next.topic,'后续篇');assert.equal(fs.readFileSync(updated.backupPath,'utf8'),text);
+  assert.throws(()=>m.updateQueue({revision:original.revision,action:{type:'edit',line:original.items[1].line,topic:'wrong',category:'wrong'}}),/其他窗口/);
+  assert.equal(m.queueConfig().next.topic,'后续篇');
+ }finally{f.close()}
 });
 test('saving preserves exact Markdown and backs up bytes; stale edits, malformed input and helper locks never overwrite',()=>{
  const f=setup();try{const before=readTopics(f.file),updated='\uFEFF'+text.replace('下一篇','新选题').replaceAll('\n','\r\n');
